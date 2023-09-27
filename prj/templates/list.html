@@ -1,0 +1,48 @@
+{% extends 'app.html' %}
+
+{% block content %}
+{{ super() }}
+
+<div class="d-flex align-items-center justify-content-center p-5">
+    <div class="col-12 table-block d-flex flex-column align-items-center">
+        <div class="d-flex justify-content-between col-10">
+            <form class="col-10" action="/search" method="post" enctype="multipart/form-data">
+                <div class="input-group mb-3">
+                    <input type="text" name="search_string" value="{{ search_string }}" class="form-control" placeholder="Search...">
+                    <button class="btn btn-outline-secondary" type="submit">Search</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="col-10">
+            <ul>
+                {% if pokemons == [] %}
+                    <div> Not found </div>
+                {% else %}
+
+                    {% if search_string %}
+                    <li>
+                        <div>
+                            ID: {{ pokemons.id }} 
+                        </div> 
+                        <div>
+                            NAME: {{ pokemons.name}}
+                        </div>
+                    </li>
+                    {% else %}
+                        {% for pok in pokemons %}
+                        <li>
+                            <div>
+                                {{ pok.name }}
+                            </div> 
+                        </li>
+                        {% endfor %}
+                    {% endif %}
+                        
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
