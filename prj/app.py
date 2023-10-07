@@ -23,13 +23,12 @@ def pokemons():
     return render_template("list.html", pokemons=list_pokemons)
 
 
-@app.route("/search", methods=["POST"])
+@app.route("/search")
 def search():
-    pokemon_name = request.form["search_string"]
+    pokemon_name = request.args.get('search_string')
     if pokemon_name == "":
         return redirect(url_for("pokemons"))
     else:
-        
         url = f"https://pokeapi.co/api/v2/pokemon/{pokemon_name}/"
         response = requests.get(url)
         
