@@ -1,0 +1,31 @@
+{% extends 'app.html' %}
+
+{% block content %}
+
+<div class="fight_page container col-10 d-flex pt-5 pb-5 justify-content-center align-items-center">
+
+    <div class="col-6 d-flex flex-column justify-content-center">
+        <h3 class="d-flex justify-content-center mb-3">
+            {{ pokemon.name }} (you)
+        </h3>
+
+        <div class="d-flex justify-content-center large_image">
+            <img src="{{ pokemon.large_image }}" alt="{{ pokemon.name }} image" height="200"/>
+        </div>
+    </div>
+
+    <h1>VS</h1>
+
+    <div class="col-6 d-flex flex-column justify-content-center">
+        <h3 class="d-flex justify-content-center mb-3">
+            {{ rnd_pokemon.name }}
+        </h3>
+
+        <div class="d-flex justify-content-center large_image">
+            <img src="{{ rnd_pokemon.large_image }}" alt="{{ rnd_pokemon.name }} image" height="200"/>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+

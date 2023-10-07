@@ -1,0 +1,30 @@
+<div class="d-flex pokemon-card col-12 align-items-center">
+    <div class="col-3">
+        <a href="{{ url_for('pokemon_page', pokemon_name=pokemon.name) }}"> 
+            <img src="{{ pokemon.image }}" alt="{{ pokemon.name }} image"/>
+        </a>
+    </div>
+
+    <div class="col-6">
+        
+        <h5 class="poke_name">
+            <a href="{{ url_for('pokemon_page', pokemon_name=pokemon.name) }}"> 
+                {{ pokemon.name }}
+            </a>
+        </h5>
+        
+        <div class="d-flex justify-content-between col-12 poke_stats ">
+            <div>hp: {{ pokemon.hp }}</div>
+            <div>attack: {{ pokemon.attack }}</div>
+            <div>defense: {{ pokemon.defense }}</div>
+        </div>
+    </div>
+
+    <div class="d-flex col-3">
+        <form class="col-12 d-flex justify-content-end" action="fight" method="get" enctype="multipart/form-data">
+            <input type="hidden" name="select_pokemon" value="{{ pokemon.name }}">
+            <button class="col-6 btn btn-outline-secondary" type="submit">Select</button>
+        </form>
+    </div>
+
+</div>

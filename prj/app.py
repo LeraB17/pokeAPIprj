@@ -25,6 +25,37 @@ def get_page_list(cur_page=1, final_page=1):
     return list(range(left, right + 1))
 
 
+def get_pokemon_info(pokemon_name):
+    url = f"https://pokeapi.co/api/v2/pokemon/{pokemon_name.strip()}/"
+    response = requests.get(url)
+    
+    if response.status_code == 200:
+        data = response.json()
+        
+        stats = data["stats"]
+        
+        hp = next((x for x in stats if x["stat"]["name"] == "hp"), None)
+        attack = next((x for x in stats if x["stat"]["name"] == "attack"), None)
+        defense = next((x for x in stats if x["stat"]["name"] == "defense"), None)
+        speed = next((x for x in stats if x["stat"]["name"] == "speed"), None)
+        poison = next((x for x in stats if x["stat"]["name"] == "poison"), None)
+        
+        return {
+            "id": data["id"],
+            "name": data["name"],
+            "image": data["sprites"]["front_default"],
+            "large_image": data["sprites"]["other"]["dream_world"]["front_default"],
+            "hp": hp["base_stat"] if hp else None,
+            "attack": attack["base_stat"] if attack else None,
+            "defense": defense["base_stat"] if defense else None,
+            "speed": speed["base_stat"] if speed else None,
+            "poison": poison["base_stat"] if poison else None,
+        }
+    else:
+        print("not found pokemon info")
+        return {}
+
+
 @app.route('/')
 def pokemons():
     try:
@@ -36,6 +67,8 @@ def pokemons():
  
     pokemon_list, page_count = get_pokemon_list(offset, limit)
     
+    pokemon_list = [get_pokemon_info(pokemon["name"]) for pokemon in pokemon_list]
+    
     return render_template("list.html", 
                            pokemons=pokemon_list, 
                            page_list=get_page_list(page, page_count), 
@@ -43,26 +76,34 @@ def pokemons():
                            final_page=page_count)
 
 
+@app.route("/pokemon/<string:pokemon_name>")
+def pokemon_page(pokemon_name):
+    pokemon = get_pokemon_info(pokemon_name)
+    return render_template("pokemon_page.html", pokemon=pokemon)
+    
+    
+@app.route("/fight")
+def fight():
+    your_pokemon_name = request.args.get('select_pokemon')
+    your_pokemon = get_pokemon_info(your_pokemon_name)
+    
+    rnd_pokemon = get_pokemon_info('poliwhirl')
+    
+    return render_template('fight_page.html', 
+                           pokemon=your_pokemon, 
+                           rnd_pokemon=rnd_pokemon)
+    
+
 @app.route("/search")
 def search():
     pokemon_name = request.args.get('search_string')
-    if pokemon_name == "":
+    if pokemon_name.strip() == "":
         return redirect(url_for("pokemons"))
     else:
-        url = f"https://pokeapi.co/api/v2/pokemon/{pokemon_name}/"
-        response = requests.get(url)
-        
-        if response.status_code == 200:
-            data = response.json()
-            
-            result = {
-                "id": data["id"],
-                "name": data["name"]
-            }
-    
-            return render_template("list.html", pokemons=result, search_string=pokemon_name)
-        else:
-            return render_template("list.html", pokemons=[], search_string=pokemon_name)
+        pokemon = get_pokemon_info(pokemon_name)
+        return render_template("list.html", 
+                               pokemons=[pokemon], 
+                               search_string=pokemon_name)
 
 
 if __name__ == '__main__':
