@@ -7,6 +7,12 @@ a {
 .pokemon_page {
     height: 100vh;
 }
-.pokemon_page .stats {
+.stats {
     font-size: larger;
+}
+label {
+    font-size: smaller;
+}
+.dead {
+    opacity: 0.2;
 }

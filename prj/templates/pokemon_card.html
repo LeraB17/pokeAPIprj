@@ -21,7 +21,7 @@
     </div>
 
     <div class="d-flex col-3">
-        <form class="col-12 d-flex justify-content-end" action="fight" method="get" enctype="multipart/form-data">
+        <form class="col-12 d-flex justify-content-end" action="{{ url_for('fight') }}" method="post" enctype="multipart/form-data">
             <input type="hidden" name="select_pokemon" value="{{ pokemon.name }}">
             <button class="col-6 btn btn-outline-secondary" type="submit">Select</button>
         </form>
