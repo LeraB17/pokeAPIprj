@@ -1,10 +1,15 @@
 from flask import Flask, render_template, request, redirect, url_for, session
+from flask_sqlalchemy import SQLAlchemy
 import requests
 import random
+from models import connect_string, db, Fight
 
 app = Flask(__name__)
 
+app.config['SQLALCHEMY_DATABASE_URI'] = connect_string
 app.config['SECRET_KEY'] = 'meow_key_mrrr$' 
+
+db.init_app(app)
 
 limit = 10
 
@@ -132,7 +137,17 @@ def fight():
         ok = 'ok' in request.form # True только если кнопка 'ok' после каждого раунда
         
         if 'ok_win' in request.form:
-            return redirect(url_for('pokemons'))
+            try:
+                fight_row = Fight(select_pokemon=session['select_pokemon'],
+                                  vs_pokemon=session['vs_pokemon'],
+                                  win=winner() == session['select_pokemon'])
+                db.session.add(fight_row)
+                db.session.commit()
+                return redirect(url_for('pokemons'))
+            except Exception:
+                print("Failed to add!")
+                db.session.rollback()
+            
 
         # если в форме пришло имя покемона - сохранить его
         if your_pokemon_name:
@@ -192,6 +207,14 @@ def fight():
     # если покемон не выбран | без отправки формы запрос страницы - в список 
     return redirect(url_for('pokemons'))
         
+        
+@app.route("/fight-archive")
+def archive():
+    fights = Fight.query.all()
+    return render_template('fight_archive.html', 
+                           fights=fights,
+                           thead=['№', 'select', 'vs', 'win'])
+    
 
 @app.route("/search")
 def search():

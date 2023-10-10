@@ -3,7 +3,13 @@
 {% block content %}
 
 <div class="container col-12 d-flex pt-5 pb-5 flex-column justify-content-center align-items-center">
-    <h3 class="col-8 mb-3">Pokemons</h3>
+    
+    <div class="col-8 mb-2 d-flex justify-content-between">
+        <h3>Pokemons</h3>
+        <h3><a href="{{ url_for('archive') }}">Fight archive</a></h3>
+    </div>
+    
+    
 
     <form class="col-8 mb-4" action="/search" method="get" enctype="multipart/form-data">
         <div class="input-group mb-3">
