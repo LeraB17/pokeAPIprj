@@ -21,7 +21,7 @@ def get_pokemon_list(offset=0, limit=10):
         data = response.json()  
         pokemon_list = data.get("results", [])
         all_poke_count = data['count']
-        return pokemon_list, int(all_poke_count / limit + 1)
+        return pokemon_list, int(all_poke_count / limit + int(all_poke_count % limit > 0))
     else:
         print(f"Error: {response.status_code}")
         return [], 0
@@ -76,13 +76,22 @@ def pokemons():
  
     pokemon_list, page_count = get_pokemon_list(offset, limit)
     
+    search_string = request.args.get('search_string', None)
+    
+    if search_string and search_string.strip() != "":
+        pokemon_list, page_count = get_pokemon_list(offset=0, limit=page_count * limit)
+        pokemon_list = [pokemon for pokemon in pokemon_list if search_string.strip() in pokemon['name']]
+        page_count = int(len(pokemon_list) / limit) + int(len(pokemon_list) % limit > 0)
+        pokemon_list = pokemon_list[offset:offset + limit]
+    
     pokemon_list = [get_pokemon_info(pokemon["name"]) for pokemon in pokemon_list]
     
     return render_template("list.html", 
                            pokemons=pokemon_list, 
                            page_list=get_page_list(page, page_count), 
                            current=page, 
-                           final_page=page_count)
+                           final_page=page_count,
+                           search_string=search_string)
 
 
 @app.route("/pokemon/<string:pokemon_name>")
@@ -214,18 +223,6 @@ def archive():
     return render_template('fight_archive.html', 
                            fights=fights,
                            thead=['№', 'select', 'vs', 'win'])
-    
-
-@app.route("/search")
-def search():
-    pokemon_name = request.args.get('search_string')
-    if pokemon_name.strip() == "":
-        return redirect(url_for("pokemons"))
-    else:
-        pokemon = get_pokemon_info(pokemon_name)
-        return render_template("list.html", 
-                               pokemons=[pokemon], 
-                               search_string=pokemon_name)
 
 
 if __name__ == '__main__':
