@@ -46,7 +46,6 @@ def get_pokemon_info(pokemon_name):
             attack = next((x for x in stats if x["stat"]["name"] == "attack"), None)
             defense = next((x for x in stats if x["stat"]["name"] == "defense"), None)
             speed = next((x for x in stats if x["stat"]["name"] == "speed"), None)
-            poison = next((x for x in stats if x["stat"]["name"] == "poison"), None)
             
             return {
                 "id": data["id"],
@@ -57,7 +56,6 @@ def get_pokemon_info(pokemon_name):
                 "attack": attack["base_stat"] if attack else None,
                 "defense": defense["base_stat"] if defense else None,
                 "speed": speed["base_stat"] if speed else None,
-                "poison": poison["base_stat"] if poison else None,
             }
 
     print("not found pokemon info")
