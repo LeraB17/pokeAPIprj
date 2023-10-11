@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request, redirect, url_for, session
-from flask_sqlalchemy import SQLAlchemy
 import requests
 import random
 from models import connect_string, db, Fight
@@ -76,7 +75,7 @@ def pokemons():
  
     pokemon_list, page_count = get_pokemon_list(offset, limit)
     
-    search_string = request.args.get('search_string', None)
+    search_string = request.args.get('search_string', '')
     
     if search_string and search_string.strip() != "":
         pokemon_list, page_count = get_pokemon_list(offset=0, limit=page_count * limit)
