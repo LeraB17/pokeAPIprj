@@ -1,0 +1,37 @@
+{% extends 'app.html' %}
+
+{% block content %}
+
+<div class="container col-12 d-flex pt-5 pb-5 flex-column justify-content-center align-items-center">
+    
+    <div class="col-8 mb-2 d-flex justify-content-between">
+        <h3>Fight archive</h3>
+        <h3><a href="{{ url_for('pokemons') }}">Pokemons</a></h3>
+    </div>
+
+    <div class="col-8">
+        <table class="table">
+            <thead>
+            <tr>
+                {% for h in thead %}
+                <th scope="col">{{ h }}</th>
+                {% endfor %}
+            </tr>
+            </thead>
+            <tbody>
+            {% for fight in fights %}
+            <tr>
+                <th scope="row">{{ fight.id }}</th>
+                <td>{{ fight.select_pokemon }}</td>
+                <td>{{ fight.vs_pokemon }}</td>
+                <td>{{ fight.win }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+
+</div>
+{% endblock %}
+

@@ -1,48 +1,67 @@
 {% extends 'app.html' %}
 
 {% block content %}
-{{ super() }}
 
-<div class="d-flex align-items-center justify-content-center p-5">
-    <div class="col-12 table-block d-flex flex-column align-items-center">
-        <div class="d-flex justify-content-between col-10">
-            <form class="col-10" action="/search" method="get" enctype="multipart/form-data">
-                <div class="input-group mb-3">
-                    <input type="text" name="search_string" value="{{ search_string }}" class="form-control" placeholder="Search...">
-                    <button class="btn btn-outline-secondary" type="submit">Search</button>
-                </div>
-            </form>
-        </div>
-
-        <div class="col-10">
-            <ul>
-                {% if pokemons == [] %}
-                    <div> Not found </div>
-                {% else %}
-
-                    {% if search_string %}
-                    <li>
-                        <div>
-                            ID: {{ pokemons.id }} 
-                        </div> 
-                        <div>
-                            NAME: {{ pokemons.name}}
-                        </div>
-                    </li>
-                    {% else %}
-                        {% for pok in pokemons %}
-                        <li>
-                            <div>
-                                {{ pok.name }}
-                            </div> 
-                        </li>
-                        {% endfor %}
-                    {% endif %}
-                        
-                {% endif %}
-            </ul>
-        </div>
+<div class="container col-12 d-flex pt-5 pb-5 flex-column justify-content-center align-items-center">
+    
+    <div class="col-8 mb-2 d-flex justify-content-between">
+        <h3>Pokemons</h3>
+        <h3><a href="{{ url_for('archive') }}">Fight archive</a></h3>
     </div>
+    
+    <form class="col-8 mb-4" action="/" method="get" enctype="multipart/form-data">
+        <div class="input-group mb-3">
+            <input type="text" name="search_string" value="{% if search_string %}{{ search_string }}{% endif %}" class="form-control" placeholder="Search...">
+            <button class="btn btn-outline-secondary" type="submit">Search</button>
+        </div>
+    </form>
+
+    <div class="col-8">
+        {% if pokemons == [] %}
+            <div> Not found </div>
+        {% else %}
+            {% for pokemon in pokemons %}
+                {% include 'pokemon_card.html' %}
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <nav class="mt-3">
+        {% if page_list|length > 1 %}
+        <ul class="pagination">
+
+            <li class="page-item">
+                {% if current > 1 %}
+                <form action="{{ url_for('pokemons') }}" method="get" enctype="multipart/form-data">
+                    <input type="hidden" name="page" value="{{ current - 1 }}">
+                    <input type="hidden" name="search_string" value="{{ search_string }}">
+                    <button class="btn btn-outline-secondary" type="submit">&laquo;</button>
+                </form>
+                {% endif %}
+            </li>
+
+            {% for page in page_list %}
+            <li>
+                <form action="{{ url_for('pokemons', search_string=search_string )}}" method="get" enctype="multipart/form-data">
+                    <input type="hidden" name="page" value="{{ page }}">
+                    <input type="hidden" name="search_string" value="{{ search_string }}">
+                    <button class="btn btn-outline-secondary {% if page == current %}active{% endif %}" type="submit">{{page}}</button>
+                </form>
+            </li>
+            {% endfor %}
+
+            <li class="page-item">
+                {% if current < final_page %}
+                <form action="{{ url_for('pokemons', search_string=search_string )}}" method="get" enctype="multipart/form-data">
+                    <input type="hidden" name="page" value="{{ current + 1 }}">
+                    <input type="hidden" name="search_string" value="{{ search_string }}">
+                    <button class="btn btn-outline-secondary" type="submit">&raquo;</button>
+                </form>
+                {% endif %}
+            </li>
+        </ul>
+        {% endif %}
+    </nav>
 </div>
 {% endblock %}
 

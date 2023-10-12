@@ -1,0 +1,18 @@
+ul.pagination li form button {
+    width: 50px;
+}
+a {
+    color: inherit;
+}
+.pokemon_page {
+    height: 100vh;
+}
+.stats {
+    font-size: larger;
+}
+label {
+    font-size: smaller;
+}
+.dead {
+    opacity: 0.2;
+}
