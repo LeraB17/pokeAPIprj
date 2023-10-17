@@ -39,22 +39,30 @@
 
         <div class="col-2 d-flex flex-column justify-content-center align-items-center">
             <h1>VS</h1>
-            <table class="col-12 d-flex flex-column table justify-content-center align-items-center">
-            {% if session['history'] %}
+            {% if rounds %}
+            <table class="col-12 table">
             <tbody class="col-12 d-flex flex-column table justify-content-center align-items-center">
                 <tr class="col-12 d-flex">
-                    <th class="col-6 d-flex justify-content-center">You</th>
-                    <th class="col-6 d-flex justify-content-center">VS</th>
+                    <th class="col-3 d-flex justify-content-center">Your num</th>
+                    <th class="col-3 d-flex justify-content-center">Your hp</th>
+                    <th class="col-3 d-flex justify-content-center">VS num</th>
+                    <th class="col-3 d-flex justify-content-center">VS hp</th>
                 </tr>
-                {% for round in session['history'] %}
-                <tr class="col-12 d-flex {% if round[2] %} table-success {% endif %} {% if not round[2] %} table-danger {% endif %}">
-                    <td class="col-6 d-flex justify-content-center">{{ round[0] }}</td>
-                    <td class="col-6 d-flex justify-content-center">{{ round[1] }}</td>
+                {% for round in rounds %}
+                <tr class="col-12 d-flex {% if round[2] == pokemon.id %} table-success {% endif %} {% if round[2] == vs_pokemon.id %} table-danger {% endif %}">
+                    <td class="col-3 d-flex justify-content-center">{{ round[0]['number'] }}</td>
+                    <td class="col-3 d-flex justify-content-center">{{ round[0]['hp'] }}</td>
+                    <td class="col-3 d-flex justify-content-center">{{ round[1]['number'] }}</td>
+                    <td class="col-3 d-flex justify-content-center">{{ round[1]['hp'] }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
-            {% endif %}
             </table>
+            {% else %}
+            <div>
+                <a class="d-flex btn btn-outline-secondary" href="{{ url_for('fast_fight') }}">Fast fight</a>
+            </div>
+            {% endif %}
         </div>
     
         <div class="col-5 d-flex flex-column justify-content-center align-items-center">

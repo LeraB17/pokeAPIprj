@@ -119,9 +119,6 @@ def round():
         
         # генерация числа противника, запись раунда в историю раундов
         vs_pokemon_number = random.randint(1, 10)
-        if 'history' not in session:
-            session['history'] = []
-        session['history'].append([entered_number, vs_pokemon_number])
         
         # запрос для отправки хода и обновления состояния покемонов    
         url = f"{request.host_url}/api/fight/{entered_number}"
@@ -144,8 +141,18 @@ def round():
             session['vs_pokemon_hp'] = data['vs_pokemon']['hp']
             round_winner = data['round_winner']
             winner = data['winner']
-            # добавление в историю раундов инфы о победителе раунда
-            session['history'][-1].append(round_winner == session['select_pokemon'])
+            # добавление в историю раундов инфы о победителе раунда + обновление hp
+            if 'history' not in session:
+                session['history'] = []
+            session['history'].append([{
+                    "number": entered_number,
+                    "hp": session['select_pokemon_hp'],
+                },
+                {
+                    "number": vs_pokemon_number,
+                    "hp": session['vs_pokemon_hp'],
+                },
+                session['select_pokemon'] if round_winner == session['select_pokemon'] else session['vs_pokemon']])
             
             # если есть победитель - бой окончен => запись в бд
             if winner:
@@ -162,9 +169,56 @@ def round():
             return render_template('fight_page.html',
                                     pokemon=select_pokemon, 
                                     vs_pokemon=vs_pokemon,
+                                    rounds=session['history'],
                                     winner=winner)
     return redirect(url_for('pokemons'))
 
+
+@app.route('/fight/fast')
+def fast_fight():
+    if 'select_pokemon' in session and 'vs_pokemon' in session:
+        
+        # если уже победа (при перезагрузке страницы) - на главную
+        if session['select_pokemon_hp'] <= 0 or session['vs_pokemon_hp'] <= 0:
+            return redirect(url_for('pokemons'))
+        
+        # получить инфу о бое
+        url = f"{request.host_url}/api/fight?id_select={session['select_pokemon']}&id_vs={session['vs_pokemon']}"
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            select_pokemon = data['select_pokemon']
+            vs_pokemon = data['vs_pokemon']
+        
+        # запрос для получения результатов быстрого боя    
+        url = f"{request.host_url}/api/fight/fast?id_select={session['select_pokemon']}&id_vs={session['vs_pokemon']}"
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            session['select_pokemon_hp'] = data['select_pokemon']['hp']
+            session['vs_pokemon_hp'] = data['vs_pokemon']['hp']
+            rounds = data['rounds']
+            winner = data['winner']
+            
+            # если есть победитель - бой окончен => запись в бд
+            if winner:
+                try:
+                    fight_row = Fight(select_pokemon=select_pokemon['name'],
+                                      vs_pokemon=vs_pokemon['name'],
+                                      win=winner == session['select_pokemon'])
+                    db.session.add(fight_row)
+                    db.session.commit()
+                except Exception:
+                    print("Failed to add!")
+                    db.session.rollback()
+            
+            return render_template('fight_page.html',
+                                    pokemon=select_pokemon, 
+                                    vs_pokemon=vs_pokemon,
+                                    rounds=rounds,
+                                    winner=winner)
+    return redirect(url_for('pokemons'))
+            
 
 @app.route("/fight-archive")
 def archive():

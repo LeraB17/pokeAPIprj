@@ -176,3 +176,78 @@ def api_attack(number):
                 }
                 return make_response(res, 200)         
     return make_response("Uncorrect data", 400)
+
+# быстрый бой
+@api_app.route('/api/fight/fast', methods=["GET"])
+def api_fast_fight():
+    # получение id покемонов
+    try:
+        id_select = int(request.args.get('id_select'))
+        id_vs = int(request.args.get('id_vs'))
+    except (ValueError, TypeError):
+        return make_response("Uncorrect ids", 400)
+    
+    # получение инфы по 2 покемонам 
+    select_pokemon = api_get_pokemon_info(id_select)
+    vs_pokemon = api_get_pokemon_info(id_vs)
+    
+    if select_pokemon.status_code != 200 or vs_pokemon.status_code != 200:
+        return make_response("Not found pokemos", 404)
+    
+    select_pokemon = select_pokemon.json
+    vs_pokemon = vs_pokemon.json
+    
+    hp_select = select_pokemon['hp']
+    hp_vs = vs_pokemon['hp']
+                
+    rounds = [] # история раундов
+    
+    # раунды, пока у кого-нибудь не закончится hp
+    while hp_select >= 0 and hp_vs >= 0:
+        number = random.randint(1, 10)
+        vs_number = random.randint(1, 10)
+        
+        round_winner = None
+        # проверка кто атакует и пересчёт hp
+        if number % 2 == vs_number % 2:
+            hp_vs -= select_pokemon['attack']
+            round_winner = select_pokemon['id']
+        else:
+            hp_select -= vs_pokemon['attack']
+            round_winner = vs_pokemon['id']
+        # запись в историю раундов
+        rounds.append([{
+            "number": number,
+            "hp": hp_select,
+        }, 
+        {
+            "number": vs_number,
+            "hp": hp_vs,
+        }, round_winner])
+            
+    # проверка победителя
+    winner = None
+    if hp_select <= 0:
+        winner = vs_pokemon['id']
+    elif hp_vs <= 0:
+        winner = select_pokemon['id']
+                        
+    # формирование ответа
+    res = {
+        "select_pokemon": {
+            "id": select_pokemon['id'],
+            "name": select_pokemon['name'],
+            "hp": hp_select,
+            "attack": select_pokemon['attack'],
+        },
+        "vs_pokemon": {
+            "id": vs_pokemon['id'],
+            "name": vs_pokemon['name'],
+            "hp": hp_vs,
+            "attack": vs_pokemon['attack'],
+        },
+        "rounds": rounds,
+        "winner": winner,
+    }
+    return make_response(res, 200) 
+                
