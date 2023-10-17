@@ -2,28 +2,15 @@ from flask import Flask, render_template, request, redirect, url_for, session
 import requests
 import random
 from models import connect_string, db, Fight
+from api import api_app
 
 app = Flask(__name__)
+app.register_blueprint(api_app)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = connect_string
 app.config['SECRET_KEY'] = 'meow_key_mrrr$' 
 
 db.init_app(app)
-
-limit = 10
-
-def get_pokemon_list(offset=0, limit=10):
-    url = f"https://pokeapi.co/api/v2/pokemon/?offset={offset}&limit={limit}"
-    response = requests.get(url)
-    
-    if response.status_code == 200:
-        data = response.json()  
-        pokemon_list = data.get("results", [])
-        all_poke_count = data['count']
-        return pokemon_list, int(all_poke_count / limit + int(all_poke_count % limit > 0))
-    else:
-        print(f"Error: {response.status_code}")
-        return [], 0
 
 
 def get_page_list(cur_page=1, final_page=1):
@@ -32,188 +19,153 @@ def get_page_list(cur_page=1, final_page=1):
     return list(range(left, right + 1))
 
 
-def get_pokemon_info(pokemon_name):
-    if pokemon_name:
-        url = f"https://pokeapi.co/api/v2/pokemon/{pokemon_name.strip()}/"
-        response = requests.get(url)
-    
-        if response.status_code == 200:
-            data = response.json()
-            
-            stats = data["stats"]
-            
-            hp = next((x for x in stats if x["stat"]["name"] == "hp"), None)
-            attack = next((x for x in stats if x["stat"]["name"] == "attack"), None)
-            defense = next((x for x in stats if x["stat"]["name"] == "defense"), None)
-            speed = next((x for x in stats if x["stat"]["name"] == "speed"), None)
-            
-            return {
-                "id": data["id"],
-                "name": data["name"],
-                "image": data["sprites"]["front_default"],
-                "large_image": data["sprites"]["other"]["dream_world"]["front_default"],
-                "hp": hp["base_stat"] if hp else None,
-                "attack": attack["base_stat"] if attack else None,
-                "defense": defense["base_stat"] if defense else None,
-                "speed": speed["base_stat"] if speed else None,
-            }
-
-    print("not found pokemon info")
-    return {}
-
-
 @app.route('/')
 def pokemons():
     try:
         page = int(request.args.get('page')) if request.args.get('page') else 1
     except ValueError:
         page = 1
-
-    offset = (page - 1) * limit 
- 
-    pokemon_list, page_count = get_pokemon_list(offset, limit)
-    
     search_string = request.args.get('search_string', '')
     
-    if search_string and search_string.strip() != "":
-        pokemon_list, page_count = get_pokemon_list(offset=0, limit=page_count * limit)
-        pokemon_list = [pokemon for pokemon in pokemon_list if search_string.strip() in pokemon['name']]
-        page_count = int(len(pokemon_list) / limit) + int(len(pokemon_list) % limit > 0)
-        pokemon_list = pokemon_list[offset:offset + limit]
-    
-    pokemon_list = [get_pokemon_info(pokemon["name"]) for pokemon in pokemon_list]
+    url = f"{request.host_url}/api/pokemon/list?page={page}&q={search_string}&limit=5"
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        data = response.json()  
+        pokemon_list = data.get('pokemons', [])
+        pages = data['pages']
     
     return render_template("list.html", 
-                           pokemons=pokemon_list, 
-                           page_list=get_page_list(page, page_count), 
-                           current=page, 
-                           final_page=page_count,
-                           search_string=search_string)
+                            pokemons=pokemon_list, 
+                            page_list=get_page_list(page, pages), 
+                            current=page, 
+                            final_page=pages,
+                            search_string=search_string)
 
 
 @app.route("/pokemon/<string:pokemon_name>")
 def pokemon_page(pokemon_name):
-    pokemon = get_pokemon_info(pokemon_name)
+    url = f"{request.host_url}/api/pokemon/{pokemon_name}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        pokemon = response.json()
     return render_template("pokemon_page.html", pokemon=pokemon)
-    
-    
-def decrease_hp(entered_number: int, vs_pokemon_number: int, run: bool):
-    if entered_number % 2 == vs_pokemon_number % 2:
-        if run:
-            session['vs_pokemon_hp'] -= session['select_pokemon_attack']
-        return True
-    else:
-        if run:
-            session['select_pokemon_hp'] -= session['vs_pokemon_attack']
-        return False
-    
-
-def define_global_win():
-    return session['vs_pokemon_hp'] <= 0 or session['select_pokemon_hp'] <= 0
 
 
-def winner():
-    result = None
-    if session['vs_pokemon_hp'] <= 0:
-        result = session['select_pokemon']
-    elif session['select_pokemon_hp'] <= 0:
-        result = session['vs_pokemon']
-    return result
-    
-    
-@app.route("/fight", methods=['GET', 'POST'])
+@app.route('/fight', methods=['GET', 'POST'])
 def fight():
-    if request.method == 'POST':
-        # может прийти: 
-        # - имя выбранного покемона (для начала боя) 
-        # - введённое число (во время боя)
-        # - 'ok' - вычесть hp после раунда
-        # - 'ok_win' - бой окончен, выйти
-        try:
-            your_pokemon_name = request.form["select_pokemon"]
-        except KeyError:
-            print('not your_pokemon_name')
-            your_pokemon_name = None
-        try:
-            entered_number = request.form["entered_number"]
-        except KeyError:
-            print('not entered_number')
-            entered_number = None
+    if request.method == 'POST' and "select_pokemon" in request.form:
+        select_pokemon_id = request.form["select_pokemon"]
+
+        # почистить сессию перед новым боем
+        session.clear()
         
-        ok = 'ok' in request.form # True только если кнопка 'ok' после каждого раунда
+        # выбор рандомного противника
+        url = f"{request.host_url}/api/pokemon/random?id={select_pokemon_id}"
+        response = requests.get(url)
+        if response.status_code == 200:
+            vs_pokemon_id = response.json()['id']
+        else:
+            print('Error random vs_pokemon_id')
+            return redirect(url_for('pokemons'))
         
-        if 'ok_win' in request.form:
-            try:
-                fight_row = Fight(select_pokemon=session['select_pokemon'],
-                                  vs_pokemon=session['vs_pokemon'],
-                                  win=winner() == session['select_pokemon'])
-                db.session.add(fight_row)
-                db.session.commit()
-                return redirect(url_for('pokemons'))
-            except Exception:
-                print("Failed to add!")
-                db.session.rollback()
+        # получение инфы о бое
+        url = f"{request.host_url}/api/fight?id_select={select_pokemon_id}&id_vs={vs_pokemon_id}"
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            select_pokemon = data['select_pokemon']
+            vs_pokemon = data['vs_pokemon']
             
-
-        # если в форме пришло имя покемона - сохранить его
-        if your_pokemon_name:
-            # почистить сессию перед новым боем
-            session.clear()
-            # запомнить выбранного покемона
-            session['select_pokemon'] = your_pokemon_name
-            your_pokemon = get_pokemon_info(session['select_pokemon'])
-            session['select_pokemon_hp'] = your_pokemon['hp']
-            session['select_pokemon_attack'] = your_pokemon['attack']
-        
-        # если покемона уже выбрали
-        if 'select_pokemon' in session:
-            # если противника ещё не назначили
-            if 'vs_pokemon' not in session:
-                # выбор рандомного (не такого же) 
-                pokemon_list, page_count = get_pokemon_list(offset=0, limit=1)
-                pokemon_list, page_count = get_pokemon_list(offset=0, limit=page_count * limit)
-                vs_pokemon_name = random.choice([pokemon for pokemon in pokemon_list if pokemon != session['select_pokemon']])['name']
-
-                session['vs_pokemon'] = vs_pokemon_name
-                vs_pokemon = get_pokemon_info(session['vs_pokemon'])
-                session['vs_pokemon_hp'] = vs_pokemon['hp']
-                session['vs_pokemon_attack'] = vs_pokemon['attack']
-                
-            # кнопка OK и ещё не вычитали hp - attack
-            if ok and 'entered_number' in session:
-                round_win = decrease_hp(session['entered_number'], session['vs_pokemon_number'], run=True)
-                session.pop('entered_number', None)
-                session.pop('vs_pokemon_number', None)
-                
-            # если отправили число
-            if entered_number:
-                # если отправленное число корректное - страница с числом вместо формы
-                if entered_number.isdigit() and int(entered_number) in list(range(1, 11)):
-                   
-                    session['entered_number'] = int(entered_number)
-                    
-                    if 'vs_pokemon_number' not in session:
-                        vs_pokemon_number = random.randint(1, 10)
-                        session['vs_pokemon_number'] = vs_pokemon_number
-                    
-                    round_win = decrease_hp(session['entered_number'], session['vs_pokemon_number'], run=False)
-
-                    return render_template('fight_page.html',
-                                            pokemon=get_pokemon_info(session['select_pokemon']), 
-                                            vs_pokemon=get_pokemon_info(session['vs_pokemon']),
-                                            round_win=round_win)
+            # записать в сессию выбранного покемона и противника
+            session['select_pokemon'] = select_pokemon['id']
+            session['select_pokemon_hp'] = select_pokemon['hp']
+            session['select_pokemon_attack'] = select_pokemon['attack']
+            session['vs_pokemon'] = vs_pokemon['id']
+            session['vs_pokemon_hp'] = vs_pokemon['hp']
+            session['vs_pokemon_attack'] = vs_pokemon['attack']
             
-            # если нет числа или число некорректное - пустая форма
             return render_template('fight_page.html',
-                                    pokemon=get_pokemon_info(session['select_pokemon']), 
-                                    vs_pokemon=get_pokemon_info(session['vs_pokemon']),
-                                    global_win=define_global_win(),
-                                    winner=get_pokemon_info(winner()))
-                
-    # если покемон не выбран | без отправки формы запрос страницы - в список 
+                                    pokemon=select_pokemon, 
+                                    vs_pokemon=vs_pokemon)
+        else:
+            print('Error get fight info')
+            return redirect(url_for('pokemons'))
     return redirect(url_for('pokemons'))
         
+
+@app.route('/fight/round', methods=["POST"])
+def round():
+    if request.method == "POST" and "entered_number" in request.form:
+        entered_number = request.form["entered_number"]
         
+        # если уже победа (при перезагрузке страницы) - на главную
+        if session['select_pokemon_hp'] <= 0 or session['vs_pokemon_hp'] <= 0:
+            return redirect(url_for('pokemons'))
+        
+        # получить инфу о бое
+        url = f"{request.host_url}/api/fight?id_select={session['select_pokemon']}&id_vs={session['vs_pokemon']}"
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            select_pokemon = data['select_pokemon']
+            vs_pokemon = data['vs_pokemon']
+        
+        # если число некорректное - перезагрузка страницы
+        if not (entered_number.isdigit() and int(entered_number) in list(range(1, 11))):
+            return render_template('fight_page.html',
+                                    pokemon=select_pokemon, 
+                                    vs_pokemon=vs_pokemon)
+        
+        # генерация числа противника, запись раунда в историю раундов
+        vs_pokemon_number = random.randint(1, 10)
+        if 'history' not in session:
+            session['history'] = []
+        session['history'].append([entered_number, vs_pokemon_number])
+        
+        # запрос для отправки хода и обновления состояния покемонов    
+        url = f"{request.host_url}/api/fight/{entered_number}"
+        response = requests.post(url, json={
+            "select_pokemon": {
+                "id": session['select_pokemon'],
+                "hp": session['select_pokemon_hp'],
+                "attack": session['select_pokemon_attack'],
+            },
+            "vs_pokemon": {
+                "id": session['vs_pokemon'],
+                "hp": session['vs_pokemon_hp'],
+                "attack": session['vs_pokemon_attack'],
+                "number": vs_pokemon_number,
+            },
+        })
+        if response.status_code == 200:
+            data = response.json()
+            session['select_pokemon_hp'] = data['select_pokemon']['hp']
+            session['vs_pokemon_hp'] = data['vs_pokemon']['hp']
+            round_winner = data['round_winner']
+            winner = data['winner']
+            # добавление в историю раундов инфы о победителе раунда
+            session['history'][-1].append(round_winner == session['select_pokemon'])
+            
+            # если есть победитель - бой окончен => запись в бд
+            if winner:
+                try:
+                    fight_row = Fight(select_pokemon=select_pokemon['name'],
+                                      vs_pokemon=vs_pokemon['name'],
+                                      win=winner == session['select_pokemon'])
+                    db.session.add(fight_row)
+                    db.session.commit()
+                except Exception:
+                    print("Failed to add!")
+                    db.session.rollback()
+            
+            return render_template('fight_page.html',
+                                    pokemon=select_pokemon, 
+                                    vs_pokemon=vs_pokemon,
+                                    winner=winner)
+    return redirect(url_for('pokemons'))
+
+
 @app.route("/fight-archive")
 def archive():
     fights = Fight.query.all()
