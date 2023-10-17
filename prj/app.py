@@ -159,7 +159,8 @@ def round():
                 try:
                     fight_row = Fight(select_pokemon=select_pokemon['name'],
                                       vs_pokemon=vs_pokemon['name'],
-                                      win=winner == session['select_pokemon'])
+                                      win=winner == session['select_pokemon'],
+                                      rounds=len(session['history']))
                     db.session.add(fight_row)
                     db.session.commit()
                 except Exception:
@@ -205,7 +206,8 @@ def fast_fight():
                 try:
                     fight_row = Fight(select_pokemon=select_pokemon['name'],
                                       vs_pokemon=vs_pokemon['name'],
-                                      win=winner == session['select_pokemon'])
+                                      win=winner == session['select_pokemon'],
+                                      rounds=len(rounds))
                     db.session.add(fight_row)
                     db.session.commit()
                 except Exception:
@@ -222,10 +224,10 @@ def fast_fight():
 
 @app.route("/fight-archive")
 def archive():
-    fights = Fight.query.all()
+    fights = Fight.query.order_by(Fight.date_time.desc()).all()
     return render_template('fight_archive.html', 
                            fights=fights,
-                           thead=['№', 'select', 'vs', 'win'])
+                           thead=['№', 'select', 'vs', 'win', 'rounds', 'date'])
 
 
 if __name__ == '__main__':

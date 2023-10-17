@@ -25,13 +25,13 @@
                 <td>{{ fight.select_pokemon }}</td>
                 <td>{{ fight.vs_pokemon }}</td>
                 <td>{{ fight.win }}</td>
+                <td>{{ fight.rounds }}</td>
+                <td>{{ fight.date_time.strftime("%Y-%m-%d %H:%M:%S") }}</td>
             </tr>
             {% endfor %}
             </tbody>
         </table>
     </div>
-
-
 </div>
 {% endblock %}
 
