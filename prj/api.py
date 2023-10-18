@@ -215,7 +215,7 @@ def api_fast_fight():
     rounds = [] # история раундов
     
     # раунды, пока у кого-нибудь не закончится hp
-    while hp_select >= 0 and hp_vs >= 0:
+    while hp_select > 0 and hp_vs > 0:
         number = random.randint(1, 10)
         vs_number = random.randint(1, 10)
         

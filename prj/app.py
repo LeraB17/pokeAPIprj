@@ -1,9 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 import requests
-import random
 from models import connect_string, db, Fight
 from api import api_app
 import re
+from send_email import send_email
+import pandas as pd
 
 app = Flask(__name__)
 app.register_blueprint(api_app)
@@ -168,6 +169,18 @@ def is_valid_email(email):
     return re.fullmatch(regex, email)
 
 
+# собрать итоги раунда в html-табличку 
+def get_results_string(rounds):
+    data = [['#', 'Your num', 'Your hp', 'Vs num', 'Vs hp', 'Win']]
+    for i, round in enumerate(rounds):
+        data.append([i, round[0]['number'], round[0]['hp'], round[1]['number'], round[1]['hp'], round[2] == session['select_pokemon']])
+    df = pd.DataFrame(data)
+    df.columns = df.iloc[0]
+    df = df[1:]
+    res = df.to_html()
+    return res
+        
+
 @app.route('/fight/fast', methods=['POST'])
 def fast_fight():
     if 'select_pokemon' in session and 'vs_pokemon' in session:
@@ -216,6 +229,10 @@ def fast_fight():
                     except Exception:
                         print("Failed to add!")
                         db.session.rollback()
+                 
+                # отправка результатов на почту       
+                results = get_results_string(rounds=rounds)
+                send_email(to_email=email, results=results)
                 
                 return render_template('fight_page.html',
                                         pokemon=select_pokemon, 
