@@ -170,11 +170,12 @@ def is_valid_email(email):
 
 
 # собрать итоги раунда в html-табличку 
-def get_results_string(rounds):
-    data = [['#', 'Your num', 'Your hp', 'Vs num', 'Vs hp', 'Win']]
-    for i, round in enumerate(rounds):
-        data.append([i, round[0]['number'], round[0]['hp'], round[1]['number'], round[1]['hp'], round[2] == session['select_pokemon']])
-    df = pd.DataFrame(data)
+def get_results_string(data):
+    
+    res = [['Your num', 'Your hp', 'Vs num', 'Vs hp', 'Win']]
+    for round in data:
+        res.append([round[0]['number'], round[0]['hp'], round[1]['number'], round[1]['hp'], round[2] == session['select_pokemon']])
+    df = pd.DataFrame(res)
     df.columns = df.iloc[0]
     df = df[1:]
     res = df.to_html()
@@ -230,9 +231,18 @@ def fast_fight():
                         print("Failed to add!")
                         db.session.rollback()
                  
-                # отправка результатов на почту       
-                results = get_results_string(rounds=rounds)
-                send_email(to_email=email, results=results)
+                # отправка результатов на почту   
+                result = {
+                    "select_pokemon_name": select_pokemon['name'],
+                    "select_pokemon_hp": select_pokemon['hp'],
+                    "select_pokemon_attack": select_pokemon['attack'],
+                    "vs_pokemon_name": vs_pokemon['name'],
+                    "vs_pokemon_hp": vs_pokemon['hp'],
+                    "vs_pokemon_attack": vs_pokemon['attack'],
+                    "rounds": get_results_string(data=rounds),
+                    "winner_name": select_pokemon['name'] if winner == select_pokemon['id'] else vs_pokemon['name'],
+                }
+                send_email(to_email=email, result=result)
                 
                 return render_template('fight_page.html',
                                         pokemon=select_pokemon, 
