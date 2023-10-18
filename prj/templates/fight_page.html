@@ -10,7 +10,7 @@
                 <h3 class="d-flex justify-content-center">
                     {{ pokemon.name }} (you)
                 </h3>
-                <div class="d-flex col-3 justify-content-between">
+                <div class="d-flex col-3 flex-column align-items-center">
                     <div>hp: {{ pokemon.hp }}</div>
                     <div>attack: {{ pokemon.attack }}</div>
                 </div>
@@ -28,7 +28,7 @@
             <div class="mt-3 d-flex col-4">
                 <form class="d-flex mt-3 col-12" action="{{ url_for('round') }}" method="post" enctype="multipart/form-data">
                     <div class="input-group">
-                        <label>Enter a number from&nbsp;1&nbsp;to&nbsp;10:</label>
+                        <label class="col-12">From&nbsp;1&nbsp;to&nbsp;10:</label>
                         <input class="col-6 form-control" name="entered_number" type="number" min="1" max="10" step="1" required />
                         <button class="col-6 btn btn-outline-secondary" type="submit">Enter</button>
                     </div>
@@ -39,6 +39,9 @@
 
         <div class="col-2 d-flex flex-column justify-content-center align-items-center">
             <h1>VS</h1>
+            {% if not_valid_email %}
+                <div class="text-danger mb-2">Uncorrect email!</div>
+            {% endif %}
             {% if rounds %}
             <table class="col-12 table">
             <tbody class="col-12 d-flex flex-column table justify-content-center align-items-center">
@@ -59,9 +62,7 @@
             </tbody>
             </table>
             {% else %}
-            <div>
-                <a class="d-flex btn btn-outline-secondary" href="{{ url_for('fast_fight') }}">Fast fight</a>
-            </div>
+                {% include 'modal.html' %}
             {% endif %}
         </div>
     
@@ -70,7 +71,7 @@
                 <h3 class="d-flex justify-content-center">
                     {{ vs_pokemon.name }}
                 </h3>
-                <div class="d-flex col-3 justify-content-between">
+                <div class="d-flex flex-column col-3 align-items-center">
                     <div>hp: {{ vs_pokemon.hp }}</div>
                     <div>attack: {{ vs_pokemon.attack }}</div>
                 </div>

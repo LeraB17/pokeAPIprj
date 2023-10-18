@@ -139,13 +139,17 @@ def api_attack(number):
     # если данные корректны
     if select_pokemon and vs_pokemon and number in list(range(1, 11)):
         if 'id' in select_pokemon and 'hp' in select_pokemon and 'attack' in select_pokemon:
-            if 'id' in vs_pokemon and 'hp' in vs_pokemon and 'attack' in vs_pokemon and 'number' in vs_pokemon:
+            if 'id' in vs_pokemon and 'hp' in vs_pokemon and 'attack' in vs_pokemon:
                 hp_select = select_pokemon['hp']
                 hp_vs = vs_pokemon['hp']
                 round_winner = None
+                
+                # генерация числа противника
+                vs_number = random.randint(1, 10)
+                
                 # проверка кто атакует и пересчёт hp
                 if hp_vs > 0 and hp_select > 0:
-                    if number % 2 == vs_pokemon['number'] % 2:
+                    if number % 2 == vs_number % 2:
                         hp_vs -= select_pokemon['attack']
                         round_winner = select_pokemon['id']
                     else:
@@ -171,7 +175,15 @@ def api_attack(number):
                         "hp": hp_vs,
                         "attack": vs_pokemon['attack'],
                     },
-                    "round_winner": round_winner,
+                    "round": [{
+                            "number": number,
+                            "hp": hp_select,
+                        }, 
+                        {
+                            "number": vs_number,
+                            "hp": hp_vs,
+                        }, 
+                        round_winner],
                     "winner": winner,
                 }
                 return make_response(res, 200)         
