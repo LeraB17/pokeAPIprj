@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 import requests
 from models import connect_string, db, Fight
 from api import api_app
@@ -258,6 +258,28 @@ def archive():
     return render_template('fight_archive.html', 
                            fights=fights,
                            thead=['№', 'select', 'vs', 'win', 'rounds', 'date'])
+
+
+@app.route('/save_info', methods=['POST'])
+def save_info():
+    if request.method == 'POST' and 'pokemon_id' in request.form:
+        pokemon_id = request.form['pokemon_id']
+        
+        # сохранить инфу о покемоне в файл
+        url = f"{request.host_url}/api/save-info/{pokemon_id}"
+        response = requests.post(url)
+        if response.status_code == 201 or response.status_code == 503:
+            data = response.json()
+            pokemon_name = data['pokemon_name']
+            
+            if response.status_code == 201:
+                flash('Info saved', 'info')
+            else:
+                flash('Info not saved', 'error')
+            
+            return redirect(url_for('pokemon_page', 
+                                    pokemon_name=pokemon_name))   
+    return redirect(url_for('pokemons'))
 
 
 if __name__ == '__main__':

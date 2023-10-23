@@ -2,27 +2,60 @@
 
 {% block content %}
 
-<div class="pokemon_page container col-8 d-flex pt-3 pb-3 justify-content-center align-items-center">
+<div class="pokemon_page container col-8 d-flex flex-column pt-3 pb-3 justify-content-center align-items-center">
 
-    <div class="d-flex col-6 justify-content-center large_image">
-        <img src="{{ pokemon.image }}" alt="{{ pokemon.name }} image" height="300"/>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="d-flex col-12 justify-content-center">
+        {% for category, message in messages %}
+            {% if category == "error" %}
+                <div class="col-8 text-center alert alert-danger" role="alert">
+                    {{ message }}
+                </div>
+            {% elif category == "info" %}
+                <div class="col-8 text-center alert alert-success" role="alert">
+                    {{ message }}
+                </div>
+            {% endif %}
+        {% endfor %}
     </div>
-
-    <div class="d-flex col-6 poke_info flex-column justify-content-between">
-        <h2 class="">{{ pokemon.name }}</h2>
-
-        <div class="stats">
-            <div>hp: {{ pokemon.hp }}</div>
-            <div>attack: {{ pokemon.attack }}</div>
-            <div>defense: {{ pokemon.defense }}</div>
-            <div>speed: {{ pokemon.speed }}</div>
+    {% endif %}
+    {% endwith %}
+    
+    <div class="d-flex justify-content-center align-items-center">
+        <div class="d-flex col-6 justify-content-center large_image">
+            <img src="{{ pokemon.image }}" alt="{{ pokemon.name }} image" height="300"/>
         </div>
+    
+        <div class="d-flex col-6 poke_info flex-column justify-content-between">
+            <h2 class="">{{ pokemon.name }}</h2>
+    
+            <div class="stats">
+                <div>hp: {{ pokemon.hp }}</div>
+                <div>attack: {{ pokemon.attack }}</div>
+                <div>defense: {{ pokemon.defense }}</div>
+                <div>speed: {{ pokemon.speed }}</div>
+            </div>
 
-        <div class="d-flex mt-3">
-            <form class="col-12" action="{{ url_for('fight') }}" method="post" enctype="multipart/form-data">
-                <input type="hidden" name="select_pokemon" value="{{ pokemon.id }}">
-                <button class="col-6 btn btn-outline-secondary" type="submit">Select</button>
-            </form>
+            <div class="col-12 d-flex flex-wrap mt-3">
+                <div class="col-12 d-flex justify-content-between">
+                    <div class="col-6 d-flex">
+                        <form class="col-11" action="{{ url_for('fight') }}" method="post" enctype="multipart/form-data">
+                            <input type="hidden" name="select_pokemon" value="{{ pokemon.id }}">
+                            <button class="col-12 btn btn-outline-secondary" type="submit">Select</button>
+                        </form>
+                    </div>
+                    <div class="col-6 d-flex justify-content-end">
+                        <form class="col-11" action="{{ url_for('save_info') }}" method="post" enctype="multipart/form-data">
+                            <input type="hidden" name="pokemon_id" value="{{ pokemon.id }}">
+                            <button class="col-12 btn btn-outline-secondary" type="submit">Save info</button>
+                        </form>
+                    </div>
+                </div>
+                <a class="mt-2 col-12 d-flex btn btn-outline-secondary " href="/">
+                    <div class="w-100 text-center">Pokemons</div>
+                </a>
+            </div>
         </div>
     </div>
 </div>

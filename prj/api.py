@@ -2,6 +2,10 @@ from flask import request, make_response, jsonify
 import requests
 from flask import Blueprint
 import random
+from datetime import date
+import ftplib
+from db import ftp_params
+import io
 
 api_app = Blueprint('route', __name__)
 
@@ -263,3 +267,33 @@ def api_fast_fight():
     }
     return make_response(res, 200) 
                 
+
+# сохранение инфы о покемоне 
+@api_app.route('/api/save-info/<int:pokemon_id>', methods=["POST"])
+def api_save_info(pokemon_id):
+    response = api_get_pokemon_info(pokemon_id)
+    
+    if response.status_code == 200:
+        pokemon = response.json
+        
+        folder_name = str(date.today()).replace('-', '').strip()
+        text_markdown = f"# Name: {pokemon['name']}\n\n### Info:\n* hp: {pokemon['hp']}\n* attack: {pokemon['attack']}\n* defense: {pokemon['defense']}\n* speed: {pokemon['speed']}"
+        byte_text_markdown = text_markdown.encode('utf-8')
+        
+        try:
+            ftp = ftplib.FTP(host=ftp_params['host'])
+            ftp.login(user=ftp_params['user'], passwd=ftp_params['password'])
+
+            files = ftp.nlst()
+            if folder_name not in files:
+                ftp.mkd(folder_name)
+            ftp.cwd(folder_name)
+            ftp.storbinary(f"STOR {pokemon['name']}.md", io.BytesIO(byte_text_markdown))
+            return make_response({'pokemon_name': pokemon['name']}, 201) 
+        except:
+            return make_response({'error': 'Service Unavailable', 'pokemon_name': pokemon['name']}, 503)
+        finally:
+            ftp.quit()
+    
+    return make_response("Not found pokemon", response.status_code)
+    
