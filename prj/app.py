@@ -5,15 +5,23 @@ from api import api_app
 import re
 from send_email import send_email
 import pandas as pd
+from flask_caching import Cache
+from db import redis
 
 app = Flask(__name__)
 app.register_blueprint(api_app)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = connect_string
 app.config['SECRET_KEY'] = 'meow_key_mrrr$' 
+app.config['CACHE_TYPE'] = redis['cache_type']
+app.config['REDIS_HOST'] = redis['cache_redis_host']
+app.config['REDIS_PORT'] = redis['cache_redis_port']
+app.config['REDIS_DB'] = redis['cache_redis_db']
 
 db.init_app(app)
 
+cache = Cache(app)
+cache.init_app(app)
 
 def get_page_list(cur_page=1, final_page=1):
     left = cur_page - 3 if cur_page >= 4 else 1
@@ -22,6 +30,7 @@ def get_page_list(cur_page=1, final_page=1):
 
 
 @app.route('/')
+@cache.cached(timeout=3600, query_string=True)
 def pokemons():
     try:
         page = int(request.args.get('page')) if request.args.get('page') else 1
@@ -29,7 +38,7 @@ def pokemons():
         page = 1
     search_string = request.args.get('search_string', '')
     
-    url = f"{request.host_url}/api/pokemon/list?page={page}&q={search_string}&limit=5"
+    url = f"{request.host_url}/api/pokemon/list?page={page}&q={search_string}&limit=10"
     response = requests.get(url)
 
     if response.status_code == 200:
@@ -46,6 +55,7 @@ def pokemons():
 
 
 @app.route("/pokemon/<string:pokemon_name>")
+@cache.cached(timeout=3600, query_string=True)
 def pokemon_page(pokemon_name):
     url = f"{request.host_url}/api/pokemon/{pokemon_name}"
     response = requests.get(url)
