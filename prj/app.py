@@ -1,22 +1,22 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 import requests
-from models import connect_string, db, Fight
+from models import db, Fight
 from api import api_app
 import re
 from send_email import send_email
 import pandas as pd
 from flask_caching import Cache
-from db import redis
+from settings import *
 
 app = Flask(__name__)
 app.register_blueprint(api_app)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = connect_string
+app.config['SQLALCHEMY_DATABASE_URI'] = DB_CONNECTION_STRING
 app.config['SECRET_KEY'] = 'meow_key_mrrr$' 
-app.config['CACHE_TYPE'] = redis['cache_type']
-app.config['REDIS_HOST'] = redis['cache_redis_host']
-app.config['REDIS_PORT'] = redis['cache_redis_port']
-app.config['REDIS_DB'] = redis['cache_redis_db']
+app.config['CACHE_TYPE'] = CACHE_TYPE
+app.config['REDIS_HOST'] = CACHE_REDIS_HOST
+app.config['REDIS_PORT'] = CACHE_REDIS_PORT
+app.config['REDIS_DB'] = CACHE_REDIS_DB
 
 db.init_app(app)
 
@@ -293,5 +293,7 @@ def save_info():
 
 
 if __name__ == '__main__':
-    app.run(port=8000, debug=True)
+    with app.app_context():
+        db.create_all()
+    app.run(host=APP_IP, port=APP_PORT, debug=APP_DEBUG)
     

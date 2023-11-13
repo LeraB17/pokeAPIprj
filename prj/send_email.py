@@ -1,12 +1,12 @@
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from db import email_params
+from settings import *
 
 
 def send_email(to_email, result, title='Pokemon Fight'):
-    email = email_params['email']
-    password = email_params['password']
+    email = MAIL_EMAIL
+    password = MAIL_PASSWORD
 
     text = f"""Results of your fast fight:\n\n
             You: {result["select_pokemon_name"]}\n
@@ -48,7 +48,7 @@ def send_email(to_email, result, title='Pokemon Fight'):
     message.attach(part2)
 
     try:
-        server = smtplib.SMTP(email_params['mail_server'], email_params['port'])
+        server = smtplib.SMTP(MAIL_SERVER, MAIL_PORT)
         server.starttls()
         server.login(email, password)
         server.sendmail(email, to_email, message.as_string())

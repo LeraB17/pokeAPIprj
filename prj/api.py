@@ -4,7 +4,7 @@ from flask import Blueprint
 import random
 from datetime import date
 import ftplib
-from db import ftp_params
+from settings import *
 import io
 
 api_app = Blueprint('route', __name__)
@@ -281,8 +281,8 @@ def api_save_info(pokemon_id):
         byte_text_markdown = text_markdown.encode('utf-8')
         
         try:
-            ftp = ftplib.FTP(host=ftp_params['host'])
-            ftp.login(user=ftp_params['user'], passwd=ftp_params['password'])
+            ftp = ftplib.FTP(host=FTP_HOST)
+            ftp.login(user=FTP_USER, passwd=FTP_PASSWORD)
 
             files = ftp.nlst()
             if folder_name not in files:
