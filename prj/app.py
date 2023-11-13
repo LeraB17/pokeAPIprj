@@ -12,11 +12,11 @@ app = Flask(__name__)
 app.register_blueprint(api_app)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = DB_CONNECTION_STRING
-app.config['SECRET_KEY'] = 'meow_key_mrrr$' 
+app.config['SECRET_KEY'] = SECRET_KEY
 app.config['CACHE_TYPE'] = CACHE_TYPE
-app.config['REDIS_HOST'] = CACHE_REDIS_HOST
-app.config['REDIS_PORT'] = CACHE_REDIS_PORT
-app.config['REDIS_DB'] = CACHE_REDIS_DB
+app.config['CACHE_REDIS_HOST'] = CACHE_REDIS_HOST
+app.config['CACHE_REDIS_PORT'] = CACHE_REDIS_PORT
+app.config['CACHE_REDIS_DB'] = CACHE_REDIS_DB
 
 db.init_app(app)
 
