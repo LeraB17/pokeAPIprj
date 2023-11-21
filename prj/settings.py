@@ -1,8 +1,8 @@
 from os import environ
 from dotenv import load_dotenv
 
-load_dotenv(dotenv_path=".env.docker")
-# load_dotenv(dotenv_path=".env.local")
+# load_dotenv(dotenv_path=".env.docker")
+load_dotenv(dotenv_path=".env.local")
 
 SECRET_KEY = environ.get('SECRET_KEY')
 APP_IP = environ.get('APP_IP')
