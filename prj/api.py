@@ -104,8 +104,13 @@ def api_get_random_pokemon():
         
         # выбор рандомного id (с/без учёта совпадения с выбранным покемоном)
         ids = [i for i in range(1, all_poke_count) if i != id_current] if id_current else [i for i in range(1, all_poke_count)] 
+        id = random.choice(ids)
+        vs_pokemon = api_get_pokemon_info(id)
+        while vs_pokemon.status_code != 200:
+            id = random.choice(ids)
+            vs_pokemon = api_get_pokemon_info(id)
         res = {
-            "id": random.choice(ids)
+            "id": id,
         }
         return make_response(res, 200)
     return make_response("Error", response.status_code)
