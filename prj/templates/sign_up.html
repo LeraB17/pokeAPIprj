@@ -1,0 +1,102 @@
+{% extends 'app.html' %}
+
+{% block header %} {% endblock %}
+
+{% block content %}
+
+<div class="sign_up_page container col-8 d-flex flex-column pt-3 pb-3 justify-content-center align-items-center">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="d-flex col-12 justify-content-center">
+        {% for category, message in messages %}
+            {% if category == "error" %}
+                <div class="col-8 text-center alert alert-danger" role="alert">
+                    {{ message }}
+                </div>
+            {% elif category == "info" %}
+                <div class="col-8 text-center alert alert-success" role="alert">
+                    {{ message }}
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <div class="container beautiful_form col-8 d-flex justify-content-center flex-column">
+        <h4>Sign Up</h4>
+        <form action="{{ url_for('auth.sign_up') }}" method="post">
+            {{ form.csrf_token }}
+            <div>
+                <div class="field-label">
+                    {{ form.name.label() }}
+                </div>
+                <div>
+                    {{ form.name(class='form-control') }}
+                </div>
+                {% if form.name.errors %}
+                {% for error in form.name.errors %}
+                <div class="field-error">
+                    {{ error }}
+                </div>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <div>
+                <div class="field-label">
+                    {{ form.email.label() }}
+                </div>
+                <div>
+                    {{ form.email(class='form-control') }}
+                </div>
+                {% if form.email.errors %}
+                {% for error in form.email.errors %}
+                <div class="field-error">
+                    {{ error }}
+                </div>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <div>
+                <div class="field-label">
+                    {{ form.password.label() }}
+                </div>
+                <div>
+                    {{ form.password(class='form-control') }}
+                </div>
+                {% if form.password.errors %}
+                {% for error in form.password.errors %}
+                <div class="field-error">
+                    {{ error }}
+                </div>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <div>
+                <div class="field-label">
+                    {{ form.confirm_password.label() }}
+                </div>
+                <div>
+                    {{ form.confirm_password(class='form-control') }}
+                </div>
+                {% if form.confirm_password.errors %}
+                {% for error in form.confirm_password.errors %}
+                <div class="field-error">
+                    {{ error }}
+                </div>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <div class="mt-2">
+                {{ form.submit(class='btn btn-outline-secondary col-6') }}
+            </div>
+            <div class="mt-2 info-text">
+                <span>Already have an account?</span>
+                <a href="{{ url_for('auth.login') }}">Login</a>
+            </div>
+        </form>
+    </div>
+
+</div>
+{% endblock %}

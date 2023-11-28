@@ -1,0 +1,29 @@
+<div class="poke_header d-flex w-100 position-fixed justify-content-center">
+	<header class="d-flex col-10 flex-wrap align-items-center justify-content-center justify-content-md-between py-3 border-bottom">
+		<div class="d-flex col-4">
+			<a href="/" class="d-flex align-items-center col-md-6 text-dark text-decoration-none">
+				<h3 class="mt-1">Pokemons</h3>
+			</a>
+			<h2>|</h2>
+			<a href="{{ url_for('archive')}}" class="d-flex align-items-center justify-content-end col-md-6 text-dark">
+				<h5 class="mt-1">Fight archive</h5>
+			</a>
+		</div>
+
+		<div class="col-md-3 d-flex justify-content-end align-items-center">
+			{% if current_user.is_authenticated %}
+				<h5 class="mt-2 me-2 text-secondary">{{ current_user.name }}</h5>
+				<a class="col-6 d-flex btn btn-secondary" href="{{ url_for('auth.logout')}}">
+					<div class="w-100 text-center">Logout</div>
+				</a>
+			{% else %}
+				<a class="me-2 col-6 d-flex btn btn-outline-secondary" href="{{ url_for('auth.login')}}">
+					<div class="w-100 text-center">Login</div>
+				</a>
+				<a class="col-6 d-flex btn btn-secondary" href="{{ url_for('auth.sign_up')}}">
+					<div class="w-100 text-center">Sign-up</div>
+				</a>
+			{% endif %}
+		</div>
+	</header>
+</div>

@@ -16,3 +16,32 @@ label {
 .dead {
     opacity: 0.2;
 }
+.login_page, .sign_up_page {
+    height: 100vh;
+}
+.beautiful_form {
+    background-color: rgb(255, 255, 255);
+    border-radius: 10px;
+    padding: 20px;
+    border: 1px solid grey;
+}
+.list_page, .fight_page {
+    padding-top: 95px;
+}
+.poke_header {
+    z-index: 10;
+    background-color: white;
+}
+.field-error {
+    color: #dc3545;
+    font-size: smaller;
+}
+.field-label {
+    font-size: larger;
+}
+.info-text {
+    font-size: smaller;
+}
+.info-text a:hover {
+    color: inherit;
+}

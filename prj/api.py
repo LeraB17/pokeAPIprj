@@ -7,9 +7,9 @@ import ftplib
 from settings import *
 import io
 
-api_app = Blueprint('route', __name__)
+api_app = Blueprint('api', __name__)
 
-default_limit = 10
+default_limit = 2
 
 # получение инфы по 1 покемону
 @api_app.route('/api/pokemon/<string:id>', methods=["GET"])
