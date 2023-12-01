@@ -61,8 +61,13 @@
             <div class="d-flex justify-content-end info-text">
                 <a href="{{ url_for('auth.forgot_password') }}">Forgot your password?</a>
             </div>
-            <div class="mt-2">
-                {{ form.submit(class='btn btn-outline-secondary col-6') }}
+            <div class="mt-2 d-flex justify-content-between">
+                <div class="col-5">
+                    {{ form.submit(class='btn btn-outline-secondary col-12') }}
+                </div>
+                <div class="col-5 d-flex justify-content-center">
+                    <a href="{{url_for('auth.login_yandex_id')}}" class="btn btn-dark col-12">Login with Yandex ID</a>
+                </div>
             </div>
             <div class="mt-2 info-text">
                 <span>Don't have an account yet?</span>

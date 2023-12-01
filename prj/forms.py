@@ -6,18 +6,18 @@ from models import User
 class LoginForm(FlaskForm):
     email = EmailField("Email", validators=[DataRequired(), Email()])
     password = PasswordField("Password", validators=[DataRequired()])
-    submit = SubmitField()
+    submit = SubmitField("Login")
     
 class LoginSecondFactorForm(FlaskForm):
     code = StringField("Code from email", validators=[DataRequired()])
-    submit = SubmitField()
+    submit = SubmitField("Login")
     
 class SignUpForm(FlaskForm):
     name = StringField("Name", validators=[DataRequired()])
     email = EmailField("Email", validators=[DataRequired(), Email()])
     password = PasswordField("Password", validators=[InputRequired(), Length(min=6, max=20, message="Password must be between 6 and 20 characters long")])
     confirm_password = PasswordField("Password again", validators=[DataRequired(), EqualTo('password', message='Passwords must match'), Length(min=6, max=20, message="Password must be between 6 and 20 characters long")])
-    submit = SubmitField()
+    submit = SubmitField("Sign Up")
     
     def validate_email(self, field):
         if User.query.filter_by(email=field.data).first():

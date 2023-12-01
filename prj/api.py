@@ -9,7 +9,7 @@ import io
 
 api_app = Blueprint('api', __name__)
 
-default_limit = 2
+default_limit = 5
 
 # получение инфы по 1 покемону
 @api_app.route('/api/pokemon/<string:id>', methods=["GET"])

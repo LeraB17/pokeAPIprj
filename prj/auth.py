@@ -4,6 +4,8 @@ from models import db, User
 from flask_login import login_required, login_user, logout_user, current_user
 import random
 import string
+import requests
+from settings import *
 
 auth_app = Blueprint('auth', __name__)
 
@@ -39,6 +41,77 @@ def login_second_factor():
         flash("Uncorrect code", 'error')
         return redirect(url_for('auth.login_second_factor'))
     return render_template('login_second_factor.html', form=form)
+
+
+@auth_app.route('/login-yandex-id')
+def login_yandex_id():
+    if current_user.is_authenticated:
+        return redirect(url_for('pokemons'))
+    return redirect(f"{YANDEX_ID_URL}?response_type=code&client_id={YANDEX_ID_CLIENT_ID}&redirect_uri={YANDEX_ID_CALLBACK_URI}")
+
+
+@auth_app.route('/login-yandex-id/callback')
+def login_yandex_id_callback():
+    if current_user.is_authenticated:
+        return redirect(url_for('pokemons'))
+    # получение access токена
+    code = request.args.get('code', None)
+    data_request_token = {
+        'grant_type': 'authorization_code',
+        'code': code,
+        'client_id': YANDEX_ID_CLIENT_ID,
+        'client_secret': YANDEX_ID_CLIENT_SECRET,
+        'redirect_uri': YANDEX_ID_CALLBACK_URI
+    }
+    response_token = requests.post(YANDEX_ID_TOKEN_URL, data=data_request_token)
+
+    if response_token.status_code != 200:
+        flash('Yandex ID error.', 'error')
+        return render_template('login.html', form=LoginForm())
+
+    token_json = response_token.json()
+
+    # получение информации о пользователе Yandex ID
+    headers = {'Authorization': f"OAuth {token_json['access_token']}"}
+    response = requests.get('https://login.yandex.ru/info?format=json', headers=headers)
+
+    if response.status_code != 200:
+        flash('Yandex ID error.', 'error')
+        return render_template('login.html', form=LoginForm())
+
+    user_info_json = response.json()
+    user_info = {'id': user_info_json.get('id'),
+                 'name': user_info_json.get('real_name', None),
+                 'email': user_info_json.get('default_email', None)}
+
+    # проверка, если ли такой пользователь
+    user = User.query.filter(User.email == user_info['email']).first()
+    print(user)
+    if user:
+        if user.name != user_info['name']:
+            user.name = user_info['name']
+            try:
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                flash('Failed to update username.', 'error')
+
+        login_user(user)
+        return redirect(url_for('pokemons'))
+    rnd_password = ''.join(random.choices(string.ascii_letters + string.digits, k=10))
+    user = User(name=user_info['name'],
+                email=user_info['email'],
+                password_hash=rnd_password)
+    try:
+        db.session.add(user)
+        db.session.commit()
+
+        login_user(user)
+        return redirect(url_for('pokemons'))
+    except Exception as e:
+        db.session.rollback()
+        flash('Register error.', 'error')
+    return render_template('login.html', form=LoginForm())
 
 
 @auth_app.route('/sign-up', methods=['GET', 'POST'])

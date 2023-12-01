@@ -12,7 +12,7 @@
 
 		<div class="col-md-3 d-flex justify-content-end align-items-center">
 			{% if current_user.is_authenticated %}
-				<h5 class="mt-2 me-2 text-secondary">{{ current_user.name }}</h5>
+				<h5 class="col-6 mt-2 me-2 text-end text-secondary">{{ current_user.name }}</h5>
 				<a class="col-6 d-flex btn btn-secondary" href="{{ url_for('auth.logout')}}">
 					<div class="w-100 text-center">Logout</div>
 				</a>
