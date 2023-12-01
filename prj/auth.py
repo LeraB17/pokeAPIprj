@@ -6,6 +6,7 @@ import random
 import string
 import requests
 from settings import *
+from send_email import send_email
 
 auth_app = Blueprint('auth', __name__)
 
@@ -20,6 +21,10 @@ def login():
             code_second = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
             print('code_second:', code_second)
             session['code_second'] = {'email': form.email.data, 'code': code_second}
+            if IS_CODE_SEND_EMAIL:
+                send_email(to_email=user.email,
+                           content=code_second,
+                           subject='code_second')
             return redirect(url_for('auth.login_second_factor'))
         flash("Invalid username or password", 'error')
         return redirect(url_for('auth.login'))
@@ -145,6 +150,10 @@ def forgot_password():
             code = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
             print('code:', code)
             session['code'] = {'email': form.email.data, 'code': code}
+            if IS_CODE_SEND_EMAIL:
+                send_email(to_email=user.email,
+                        content=code,
+                        subject='code')
             return redirect(url_for('auth.change_password'))
         flash("Account does not exist", 'error')
         return redirect(url_for('auth.forgot_password'))

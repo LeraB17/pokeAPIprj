@@ -26,7 +26,7 @@ label {
     border: 1px solid grey;
 }
 .list_page, .fight_page {
-    padding-top: 95px;
+    padding-top: 115px;
 }
 .poke_header {
     z-index: 10;

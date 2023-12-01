@@ -8,7 +8,6 @@ from send_email import send_email
 import pandas as pd
 from settings import *
 from flask_login import current_user
-from flask_wtf.csrf import generate_csrf, validate_csrf
 
 app = Flask(__name__)
 app.register_blueprint(api_app)
@@ -271,7 +270,9 @@ def fast_fight():
                     "rounds": get_results_string(data=rounds),
                     "winner_name": select_pokemon['name'] if winner == select_pokemon['id'] else vs_pokemon['name'],
                 }
-                send_email(to_email=email, result=result)
+                send_email(to_email=email, 
+                           content=result,
+                           subject='result')
                 
                 return render_template('fight_page.html',
                                         pokemon=select_pokemon, 
