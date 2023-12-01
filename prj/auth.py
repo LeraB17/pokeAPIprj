@@ -10,6 +10,9 @@ from send_email import send_email
 
 auth_app = Blueprint('auth', __name__)
 
+def change_auth():
+    cache.clear()
+
 @auth_app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
@@ -42,6 +45,7 @@ def login_second_factor():
         if form.code.data == session['code_second']['code']:
             user = User.query.filter_by(email=session['code_second']['email']).first()
             login_user(user)
+            change_auth()
             return redirect(url_for('pokemons'))
         flash("Uncorrect code", 'error')
         return redirect(url_for('auth.login_second_factor'))
@@ -102,6 +106,7 @@ def login_yandex_id_callback():
                 flash('Failed to update username.', 'error')
 
         login_user(user)
+        change_auth()
         return redirect(url_for('pokemons'))
     rnd_password = ''.join(random.choices(string.ascii_letters + string.digits, k=10))
     user = User(name=user_info['name'],
@@ -112,6 +117,7 @@ def login_yandex_id_callback():
         db.session.commit()
 
         login_user(user)
+        change_auth()
         return redirect(url_for('pokemons'))
     except Exception as e:
         db.session.rollback()
@@ -185,4 +191,5 @@ def change_password():
 def logout():
     session.clear()
     logout_user()
+    change_auth()
     return redirect(url_for('pokemons'))

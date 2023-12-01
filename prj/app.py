@@ -37,7 +37,7 @@ def get_page_list(cur_page=1, final_page=1):
     right = cur_page + 3 if final_page - cur_page >= 3 else final_page
     return list(range(left, right + 1))
 
-timeout=1
+timeout=500
 
 @app.route('/')
 @cache.cached(timeout=timeout, query_string=True)

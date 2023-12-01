@@ -6,8 +6,8 @@ from flask_bcrypt import Bcrypt
 from flask_caching import Cache
 from flask_login import LoginManager
 
-# load_dotenv(dotenv_path=".env.docker")
-load_dotenv(dotenv_path=".env.local")
+load_dotenv(dotenv_path=".env.docker")
+# load_dotenv(dotenv_path=".env.local")
 
 db = SQLAlchemy()
 cache = Cache()
@@ -49,4 +49,4 @@ YANDEX_ID_CLIENT_SECRET = environ.get('YANDEX_ID_CLIENT_SECRET')
 YANDEX_ID_TOKEN_URL = environ.get('YANDEX_ID_TOKEN_URL')
 YANDEX_ID_CALLBACK_URI = environ.get('YANDEX_ID_CALLBACK_URI')
 
-IS_CODE_SEND_EMAIL = False
+IS_CODE_SEND_EMAIL = True
