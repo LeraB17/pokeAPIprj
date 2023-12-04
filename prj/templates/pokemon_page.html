@@ -41,12 +41,14 @@
                 <div class="col-12 d-flex justify-content-between">
                     <div class="col-6 d-flex">
                         <form class="col-11" action="{{ url_for('fight') }}" method="post" enctype="multipart/form-data">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                             <input type="hidden" name="select_pokemon" value="{{ pokemon.id }}">
                             <button class="col-12 btn btn-outline-secondary" type="submit">Select</button>
                         </form>
                     </div>
                     <div class="col-6 d-flex justify-content-end">
                         <form class="col-11" action="{{ url_for('save_info') }}" method="post" enctype="multipart/form-data">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                             <input type="hidden" name="pokemon_id" value="{{ pokemon.id }}">
                             <button class="col-12 btn btn-outline-secondary" type="submit">Save info</button>
                         </form>

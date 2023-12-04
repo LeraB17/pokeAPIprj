@@ -1,8 +1,20 @@
 from os import environ
 from dotenv import load_dotenv
+from flask_sqlalchemy import SQLAlchemy
+from flask_wtf.csrf import CSRFProtect
+from flask_bcrypt import Bcrypt
+from flask_caching import Cache
+from flask_login import LoginManager
 
-# load_dotenv(dotenv_path=".env.docker")
-load_dotenv(dotenv_path=".env.local")
+load_dotenv(dotenv_path=".env.docker")
+# load_dotenv(dotenv_path=".env.local")
+
+db = SQLAlchemy()
+cache = Cache()
+csrf = CSRFProtect()
+bcrypt = Bcrypt()
+login_manager = LoginManager()
+login_manager.login_view = 'auth.login'
 
 SECRET_KEY = environ.get('SECRET_KEY')
 APP_IP = environ.get('APP_IP')
@@ -31,4 +43,10 @@ CACHE_REDIS_HOST = environ.get('CACHE_REDIS_HOST')
 CACHE_REDIS_PORT = environ.get('CACHE_REDIS_PORT')
 CACHE_REDIS_DB = environ.get('CACHE_REDIS_DB')
 
+YANDEX_ID_URL = environ.get('YANDEX_ID_URL')
+YANDEX_ID_CLIENT_ID = environ.get('YANDEX_ID_CLIENT_ID')
+YANDEX_ID_CLIENT_SECRET = environ.get('YANDEX_ID_CLIENT_SECRET')
+YANDEX_ID_TOKEN_URL = environ.get('YANDEX_ID_TOKEN_URL')
+YANDEX_ID_CALLBACK_URI = environ.get('YANDEX_ID_CALLBACK_URI')
 
+IS_CODE_SEND_EMAIL = True
