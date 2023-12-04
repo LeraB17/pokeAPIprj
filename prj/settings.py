@@ -6,8 +6,8 @@ from flask_bcrypt import Bcrypt
 from flask_caching import Cache
 from flask_login import LoginManager
 
-load_dotenv(dotenv_path=".env.docker")
-# load_dotenv(dotenv_path=".env.local")
+# load_dotenv(dotenv_path=".env.docker")
+load_dotenv(dotenv_path=".env.local")
 
 db = SQLAlchemy()
 cache = Cache()

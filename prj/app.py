@@ -8,6 +8,7 @@ from send_email import send_email
 import pandas as pd
 from settings import *
 from flask_login import current_user
+from db_data import data_generation
 
 app = Flask(__name__)
 app.register_blueprint(api_app)
@@ -315,5 +316,12 @@ def save_info():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
+        # db.session.query(Fight).delete()
+
+        c = Fight.query.count()
+        r = 100
+        num = abs(c - r) if c < r else 0
+        data_generation(db=db, num_fight=num)
+        
     app.run(host=APP_IP, port=APP_PORT, debug=APP_DEBUG)
     
